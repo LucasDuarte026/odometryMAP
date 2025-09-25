@@ -37,7 +37,10 @@ def integrate_accelatation(csv_path):
     return dx, dy, dz
 
 
-df = pd.read_csv("./data/2025-09-21--22-41-13/Location.csv")
+file_name = '2025-09-21_22-41-13' # teste feito em casa -> pequeno
+file_name = '2025-09-25_09-38-23' # teste feito atravessando a usp são carlos -> maior
+df = pd.read_csv(f"./data/{file_name}/Location.csv")
+
 # Extrai latitude e longitude
 latitudes = df["Latitude (°)"].values
 longitudes = df["Longitude (°)"].values
@@ -57,11 +60,11 @@ folium.PolyLine(
 for i, (lat, lon) in enumerate(coords, start=1):
     folium.Marker([lat, lon], popup=f"Ponto {i}").add_to(map)
 
-map.save("trajeto.html")
+map.save(f"tracks/track_{file_name}.html")
 
 
 # MUDANÇA 2: Chamar a função e receber os três vetores em variáveis separadas
-dx_vec, dy_vec, dz_vec = integrate_accelatation("./data/2025-09-21--22-41-13/Accelerometer.csv")
+dx_vec, dy_vec, dz_vec = integrate_accelatation(f"./data/{file_name}/Accelerometer.csv")
 
 # MUDANÇA 3: Exibir os resultados de forma vetorial
 print("\n--- Análise Vetorial do Acelerômetro ---")
