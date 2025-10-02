@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Map Odometry Analysis - 2025-09-21_22-41-13</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    <style>
+        .main-title {
+            position: fixed; top: 20px; left: 0; z-index: 1000;
+            background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 50%, #C084FC 100%);
+            color: white; padding: 15px 25px; border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(139, 92, 246, 0.4);
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            font-size: 22px; font-weight: 700;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            letter-spacing: -0.025em;
+        }
+        
+        .data-panel {
+            position: fixed; bottom: 20px; left: 20px; z-index: 1000;
+            background: rgba(255, 255, 255, 0.96); border-radius: 20px;
+            box-shadow: 0 12px 48px rgba(139, 92, 246, 0.15);
+            backdrop-filter: blur(16px); border: 1px solid rgba(139, 92, 246, 0.2);
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            min-width: 370px;
+        }
+        
+        .panel-tabs { display: flex; border-bottom: 1px solid rgba(139, 92, 246, 0.15); }
+        
+        .tab-button {
+            flex: 1; padding: 14px 18px; background: none; border: none;
+            cursor: pointer; font-weight: 600; color: #6B7280;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            border-radius: 20px 20px 0 0; font-size: 14px;
+        }
+        
+        .tab-button.active { 
+            background: linear-gradient(135deg, #8B5CF6, #A855F7); 
+            color: white; transform: translateY(-1px);
+        }
+        .tab-button:hover:not(.active) { 
+            background: rgba(139, 92, 246, 0.08); color: #8B5CF6; 
+        }
+        
+        .tab-content { padding: 20px; display: none; }
+        .tab-content.active { display: block; }
+        
+        .data-item {
+            margin-bottom: 12px; display: flex;
+            justify-content: space-between; align-items: center;
+        }
+        
+        .data-label { font-weight: 600; color: #374151; }
+        .data-value { color: #8B5CF6; font-weight: 700; }
+        
+        .home-button {
+            position: fixed; top: 100px; left: 20px; z-index: 1000;
+            background: linear-gradient(135deg, #10B981, #059669); 
+            color: white; border: none;
+            padding: 14px 22px; border-radius: 30px; cursor: pointer;
+            font-weight: 600; box-shadow: 0 6px 24px rgba(16, 185, 129, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            font-size: 14px; letter-spacing: -0.025em;
+        }
+        
+        .home-button:hover {
+            background: linear-gradient(135deg, #059669, #047857); 
+            transform: translateY(-3px);
+            box-shadow: 0 8px 32px rgba(16, 185, 129, 0.4);
+        }
+        
+        .info-button {
+            position: fixed; top: 160px; left: 20px; z-index: 1000;
+            background: linear-gradient(135deg, #3B82F6, #2563EB); 
+            color: white; border: none;
+            padding: 14px 22px; border-radius: 30px; cursor: pointer;
+            font-weight: 600; box-shadow: 0 6px 24px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            font-size: 14px; letter-spacing: -0.025em;
+        }
+        
+        .info-button:hover {
+            background: linear-gradient(135deg, #2563EB, #1D4ED8); 
+            transform: translateY(-3px);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
+        }
+        
+        .modal {
+            display: none; position: fixed; z-index: 2000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background-color: #fefefe; margin: 5% auto; padding: 30px;
+            border-radius: 15px; width: 80%; max-width: 600px;
+            max-height: 80vh; overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .close {
+            color: #aaa; float: right; font-size: 28px;
+            font-weight: bold; cursor: pointer; margin-top: -10px;
+        }
+        .close:hover { color: #000; }
+        
+        .device-info {
+            display: grid; grid-template-columns: 1fr 2fr;
+            gap: 10px; margin-bottom: 10px;
+        }
+        .device-info strong { color: #333; }
+        
+        .datetime-info {
+            background: linear-gradient(135deg, #EC4899, #BE185D);
+            color: white; padding: 12px 18px; border-radius: 16px;
+            margin-bottom: 12px; text-align: center; font-weight: 600;
+            font-size: 15px; letter-spacing: -0.025em;
+            box-shadow: 0 4px 20px rgba(236, 72, 153, 0.3);
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+</head>
+<body>
+    <div class="main-title">📍 Map Odometry Analysis</div>
+    
+    <button class="home-button" onclick="centerMap()">🎯 Home</button>
+    <button class="info-button" onclick="openModal()">📱 Device Info</button>
+    
+    <div class="data-panel">
+        <div class="datetime-info">📅 2025-09-21 ⏰ 22:41:13</div>
+        
+        <div class="panel-tabs">
+            <button class="tab-button active" onclick="switchTab('data')">📈 Analytics</button>
+            <button class="tab-button" onclick="switchTab('displacement')">🧭 Displacement</button>
+        </div>
+        
+        <div id="data-tab" class="tab-content active">
+            <div class="data-item">
+                <span class="data-label">GPS Points:</span>
+                <span class="data-value">36</span>
+            </div>
+            <div class="data-item">
+                <span class="data-label">Accel. Points:</span>
+                <span class="data-value">7,346</span>
+            </div>
+            <div class="data-item">
+                <span class="data-label">Accel. Frequency:</span>
+                <span class="data-value">199.8 Hz</span>
+            </div>
+            <div class="data-item">
+                <span class="data-label">Duration:</span>
+                <span class="data-value">36.8s</span>
+            </div>
+        </div>
+        
+        <div id="displacement-tab" class="tab-content">
+            <div class="data-item">
+                <span class="data-label">Δx:</span>
+                <span class="data-value">20.518 m</span>
+            </div>
+            <div class="data-item">
+                <span class="data-label">Δy:</span>
+                <span class="data-value">-158.130 m</span>
+            </div>
+            <div class="data-item">
+                <span class="data-label">Δz:</span>
+                <span class="data-value">47.042 m</span>
+            </div>
+            <div class="data-item">
+                <span class="data-label">Total:</span>
+                <span class="data-value">166.250 m</span>
+            </div>
+        </div>
+    </div>
+    
+    <div id="deviceModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>🔧 Device Information</h2>
+            
+            <h3>📱 Device Details</h3>
+            <div class="device-info">
+                <strong>Model:</strong> <span>SM-S931B</span>
+                <strong>Brand:</strong> <span>samsung</span>
+                <strong>Manufacturer:</strong> <span>samsung</span>
+                <strong>Android Version:</strong> <span>15</span>
+            </div>
+            
+            <h3>🛰️ GPS Sensor</h3>
+            <div class="device-info">
+                <strong>Provider:</strong> <span>Android Location Services</span>
+                <strong>Accuracy:</strong> <span>Variable (see map data)</span>
+            </div>
+            
+            <h3>⚡ Linear Acceleration Sensor</h3>
+            <div class="device-info">
+                <strong>Name:</strong> <span>linear_acceleration</span>
+                <strong>Vendor:</strong> <span>QTI</span>
+                <strong>Range:</strong> <span>156.91 m/s²</span>
+                <strong>Resolution:</strong> <span>0.01 m/s²</span>
+                <strong>Min Delay:</strong> <span>5000 μs</span>
+                <strong>Power:</strong> <span>0.515 mA</span>
+            </div>
+            
+            <h3>🔬 Other Sensors Available</h3>
+            <div class="device-info">
+                <strong>Accelerometer:</strong> <span>lsm6dsv_0 Accelerometer Non-wakeup</span>
+                <strong>Gyroscope:</strong> <span>lsm6dsv_0 Gyroscope Non-wakeup</span>
+                <strong>Magnetometer:</strong> <span>ak0991x_0 Magnetometer Non-wakeup</span>
+                <strong>Pressure:</strong> <span>bmp5 Pressure Sensor Non-wakeup</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="folium-map" id="map_2aece5119e4826f544b7243777d82f2d" ></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_2aece5119e4826f544b7243777d82f2d {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_2aece5119e4826f544b7243777d82f2d" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_2aece5119e4826f544b7243777d82f2d = L.map(
+                "map_2aece5119e4826f544b7243777d82f2d",
+                {
+                    center: [-22.006897506944444, -47.89200287055556],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 17,
+  "zoomControl": true,
+  "preferCanvas": false,
+  "scrollWheelZoom": true,
+  "doubleClickZoom": true,
+  "boxZoom": true,
+  "keyboard": true,
+  "dragging": true,
+  "zoomSnap": 0.5,
+  "zoomDelta": 0.5,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_a15544c96881d70934ae0758dc6d00a2 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_a15544c96881d70934ae0758dc6d00a2.addTo(map_2aece5119e4826f544b7243777d82f2d);
+        
+    
+            var poly_line_5a567824fbbcd74960eac27821f5265b = L.polyline(
+                [[-22.00693091, -47.89195332], [-22.00693126, -47.89195347], [-22.00693125, -47.89195337], [-22.00693131, -47.89195336], [-22.00693119, -47.8919536], [-22.00693113, -47.89195366], [-22.00693113, -47.89195405], [-22.00693123, -47.89195391], [-22.00693075, -47.89195567], [-22.00692979, -47.89196192], [-22.00693022, -47.89196449], [-22.00691724, -47.89199978], [-22.00690586, -47.89203571], [-22.00690669, -47.89205395], [-22.00690964, -47.892054], [-22.00690779, -47.89205778], [-22.00690689, -47.89205826], [-22.00690748, -47.89205786], [-22.00689974, -47.89205079], [-22.00688389, -47.89204481], [-22.00687009, -47.89203708], [-22.00686102, -47.89202896], [-22.00685309, -47.89201863], [-22.00684827, -47.89200851], [-22.00684658, -47.89199839], [-22.00684712, -47.89198851], [-22.0068516, -47.89198336], [-22.00685695, -47.89198336], [-22.00686597, -47.89199385], [-22.00687235, -47.89200393], [-22.006876, -47.8920132], [-22.00688145, -47.89201953], [-22.00688836, -47.89202054], [-22.00689411, -47.89201969], [-22.00690294, -47.89202756], [-22.00690896, -47.89203448]],
+                {"bubblingMouseEvents": true, "color": "#8B5CF6", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "#8B5CF6", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.9, "smoothFactor": 1.0, "stroke": true, "weight": 4}
+            ).addTo(map_2aece5119e4826f544b7243777d82f2d);
+        
+    
+            var marker_53ee70283b3f9a3e02157003dea1c50d = L.marker(
+                [-22.00693091, -47.89195332],
+                {
+}
+            ).addTo(map_2aece5119e4826f544b7243777d82f2d);
+        
+    
+            var icon_32f784066885c49579457f3a62a6a14e = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "play",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_3d696ddb02b8921ff3eb6343d3966ade = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_12c85e7cdc54b8e19396f7dac33b2930 = $(`<div id="html_12c85e7cdc54b8e19396f7dac33b2930" style="width: 100.0%; height: 100.0%;">Ponto Inicial</div>`)[0];
+                popup_3d696ddb02b8921ff3eb6343d3966ade.setContent(html_12c85e7cdc54b8e19396f7dac33b2930);
+            
+        
+
+        marker_53ee70283b3f9a3e02157003dea1c50d.bindPopup(popup_3d696ddb02b8921ff3eb6343d3966ade)
+        ;
+
+        
+    
+    
+                marker_53ee70283b3f9a3e02157003dea1c50d.setIcon(icon_32f784066885c49579457f3a62a6a14e);
+            
+    
+            var marker_5ce3227ce7e677b2a936ba4d0091d98b = L.marker(
+                [-22.00690896, -47.89203448],
+                {
+}
+            ).addTo(map_2aece5119e4826f544b7243777d82f2d);
+        
+    
+            var icon_99ac84e7d79500ee2862e67bbda3acb6 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "stop",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_8d8f7455414c97f4e02a5ec9164ad8f8 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_4c7e9a6ef0930936c5cfc4777fe79fcf = $(`<div id="html_4c7e9a6ef0930936c5cfc4777fe79fcf" style="width: 100.0%; height: 100.0%;">Ponto Final</div>`)[0];
+                popup_8d8f7455414c97f4e02a5ec9164ad8f8.setContent(html_4c7e9a6ef0930936c5cfc4777fe79fcf);
+            
+        
+
+        marker_5ce3227ce7e677b2a936ba4d0091d98b.bindPopup(popup_8d8f7455414c97f4e02a5ec9164ad8f8)
+        ;
+
+        
+    
+    
+                marker_5ce3227ce7e677b2a936ba4d0091d98b.setIcon(icon_99ac84e7d79500ee2862e67bbda3acb6);
+            
+</script>
+    
+    <script>
+        const centerCoords = [-22.006897506944444, -47.89200287055556];
+        const allCoords = [[-22.00693091, -47.89195332], [-22.00693126, -47.89195347], [-22.00693125, -47.89195337], [-22.00693131, -47.89195336], [-22.00693119, -47.8919536], [-22.00693113, -47.89195366], [-22.00693113, -47.89195405], [-22.00693123, -47.89195391], [-22.00693075, -47.89195567], [-22.00692979, -47.89196192], [-22.00693022, -47.89196449], [-22.00691724, -47.89199978], [-22.00690586, -47.89203571], [-22.00690669, -47.89205395], [-22.00690964, -47.892054], [-22.00690779, -47.89205778], [-22.00690689, -47.89205826], [-22.00690748, -47.89205786], [-22.00689974, -47.89205079], [-22.00688389, -47.89204481], [-22.00687009, -47.89203708], [-22.00686102, -47.89202896], [-22.00685309, -47.89201863], [-22.00684827, -47.89200851], [-22.00684658, -47.89199839], [-22.00684712, -47.89198851], [-22.0068516, -47.89198336], [-22.00685695, -47.89198336], [-22.00686597, -47.89199385], [-22.00687235, -47.89200393], [-22.006876, -47.8920132], [-22.00688145, -47.89201953], [-22.00688836, -47.89202054], [-22.00689411, -47.89201969], [-22.00690294, -47.89202756], [-22.00690896, -47.89203448]];
+        
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+        
+        function centerMap() {
+            const mapElements = document.querySelectorAll('[id^="map_"]');
+            if (mapElements.length > 0 && window[mapElements[0].id]) {
+                const mapObj = window[mapElements[0].id];
+                
+                const lats = allCoords.map(coord => coord[0]);
+                const lngs = allCoords.map(coord => coord[1]);
+                
+                const bounds = [
+                    [Math.min(...lats), Math.min(...lngs)],
+                    [Math.max(...lats), Math.max(...lngs)]
+                ];
+                
+                mapObj.fitBounds(bounds, {padding: [50, 50]});
+            }
+        }
+        
+        function openModal() {
+            document.getElementById('deviceModal').style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('deviceModal').style.display = 'none';
+        }
+        
+        window.onclick = function(event) {
+            const modal = document.getElementById('deviceModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
