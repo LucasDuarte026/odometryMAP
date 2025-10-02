@@ -2,8 +2,8 @@
  
 # Define the directory where the files are
 DATA_DIR="./data/"
-VENV_PATH="MAP"
-REQUIREMENTS_FILE="MAP/requirements.txt"
+VENV_PATH="venv"
+REQUIREMENTS_FILE="requirements.txt"
 
 
 if [ ! -d "$VENV_PATH" ]; then

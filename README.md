@@ -118,6 +118,6 @@ It incorporates data collected with the [Phyphox application](https://phyphox.or
 
 
 Lucas Sales Duarte  
-NUSP: 11734490
+NUSP: 11734490  
 Discipline: <b>SSC-715-2016 – USP São Carlos</b>
 
