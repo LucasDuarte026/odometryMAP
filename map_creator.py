@@ -209,7 +209,7 @@ def create_enhanced_map(file_name):
     {''.join(leaflet_css)}
     <style>
         .main-title {{
-            position: fixed; top: 20px; left: 0; z-index: 1000;
+            position: fixed; top: 15px; left: 60px; z-index: 1000;
             background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 50%, #C084FC 100%);
             color: white; padding: 15px 25px; border-radius: 20px;
             box-shadow: 0 10px 40px rgba(139, 92, 246, 0.4);
@@ -221,7 +221,7 @@ def create_enhanced_map(file_name):
         }}
         
         .data-panel {{
-            position: fixed; bottom: 20px; left: 20px; z-index: 1000;
+            position: fixed; bottom: 20px; left: 60px; z-index: 1000;
             background: rgba(255, 255, 255, 0.96); border-radius: 20px;
             box-shadow: 0 12px 48px rgba(139, 92, 246, 0.15);
             backdrop-filter: blur(16px); border: 1px solid rgba(139, 92, 246, 0.2);
@@ -258,7 +258,7 @@ def create_enhanced_map(file_name):
         .data-value {{ color: #8B5CF6; font-weight: 700; }}
         
         .home-button {{
-            position: fixed; top: 100px; left: 20px; z-index: 1000;
+            position: fixed; top: 100px; left: 60px; z-index: 1000;
             background: linear-gradient(135deg, #10B981, #059669); 
             color: white; border: none;
             padding: 14px 22px; border-radius: 30px; cursor: pointer;
@@ -275,7 +275,7 @@ def create_enhanced_map(file_name):
         }}
         
         .info-button {{
-            position: fixed; top: 160px; left: 20px; z-index: 1000;
+            position: fixed; top: 160px; left: 60px; z-index: 1000;
             background: linear-gradient(135deg, #3B82F6, #2563EB); 
             color: white; border: none;
             padding: 14px 22px; border-radius: 30px; cursor: pointer;
